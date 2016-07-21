@@ -1,0 +1,28 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+#SHW-PAGE-FORECAST,
+#SHW-PAGE-POINT-LIST,
+#SHW-PAGE-SELECT-POINT,
+div.SHW-MAP {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+}
+
+div.SHW-OVERLAY {
+	margin: 0;
+	padding: 0.5em;
+	position: absolute;
+	top: 0;
+}
+#SHW-BTN-L {
+	left: 0;
+}
+#SHW-BTN-R {
+	right: 0;
+}
+

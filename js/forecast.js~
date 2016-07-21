@@ -1,0 +1,48 @@
+$(function(){
+	var shw = window.shw || {};
+
+	var TEXT_TITLE = "天気予報";
+	var TEXT_ACTION = "<i class='fa fa-navicon'></i>";
+	var TEXT_ACTREL = "更　新";
+	var TEXT_ACTUNS = "目的地を解除";
+	var TEXT_ACTSET = "目的地を設定";
+	var TEXT_ACTEXT = "キャンセル";
+	
+	var forecast = {};
+	forecast.setGoal = function(name, coords){
+		shw.common.storageAccessor(function(json){
+			json.pagestack.push(next);
+		});
+	};
+	forecast.unsetGoal = function(){};
+
+	//init
+	shw.common.setShowAction("forecast", function(){});
+	shw.common.setHideAction("forecast", function(){});
+	var header = $("#SHW-FORECAST h1");
+	var rightButton = $("#SHW-FC-BTN-R button");
+	var actions = {
+		rel: {el: $("#SHW-FC-RELOAD"), txt: TEXT_ACTREL, func: function(){}},
+		uns: {el: $("#SHW-FC-RELEASE"), txt: TEXT_ACTUNS, func: function(){
+			forecast.unsetGoal();
+		}},
+		set: {el: $("#SHW-FC-ASSIGN"), txt: TEXT_ACTSET, func: function(){
+			shw.common.pushPage("point_list");
+		}},
+		ext: {el: $("#SHW-FC-CANCEL"), txt: TEXT_ACTEXT, func: function(){}},
+	};
+	$(header).html(TEXT_TITLE);
+	$(rightButton).html(TEXT_ACTION);
+	Object.keys(actions).forEach(function(name){
+		var action = actions[name];
+		$(action.el).html(action.txt).on("click tap", function(){
+			action.func();
+		});
+	});
+	//TODO: resume and suspend
+	$(window).on("focus", function(){
+		console.log('focus');
+	});
+
+	shw.forecast = forecast;
+});

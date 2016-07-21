@@ -1,0 +1,111 @@
+$(function(){
+
+	var shw = window.shw || {};
+
+	var TEXT_OK = "<i class='fa fa-hand-o-down'></i>";//ここに決定
+	var TEXT_CANCEL = "<i class='fa fa-reply'></i>";//キャンセル
+	var TEXT_PROMPT = "名前を入力してください";
+	var TEXT_DUPLCATE = "同じ名前があります";
+	var TEXT_EMPTY = "名前が空です";
+	var DEFAULT_SCALE = 14;
+	var config_on = [
+		"scrollWheelZoom",
+		"doubleClickZoom",
+	];
+	var map_controls = [
+		Y.CenterMarkControl, 
+		Y.ScaleControl,
+		Y.SliderZoomControlVertical,
+	];
+
+	var setBodyFull = function(){
+		$("#SHW-MAP").height($(window).height());
+	};
+	var ymap = new Y.Map("SHW-MAP");
+
+	var selectPoint = {};
+	selectPoint.initMap = function(){
+		var latlng = new Y.LatLng(0, 0);
+		setBodyFull();
+		ymap.drawMap(latlng, 1, Y.LayerSetId.NORMAL);
+		config_on.forEach(function(config){
+			ymap.setConfigure(config, true);
+		});
+		map_controls.forEach(function(control){
+			ymap.addControl(new control());
+		});
+		ymap.updateSize();
+		$("#SHW-MAP div.yolp-noprint").last().css("top", "48px");
+		$(window).on("orientationchange resize",function(){
+			setBodyFull();
+			ymap.updateSize();
+		});
+	};
+	selectPoint.setMap = function(coords, scale){
+		var latlng = new Y.LatLng(coords.latitude, coords.longitude);
+		ymap.panTo(latlng, false);
+		ymap.setZoom(scale);
+	};
+	selectPoint.getMapPoint = function(){
+		var center = ymap.getCenter();
+		console.log(center);
+		return {
+			latitude: center.Lat,
+			longitude: center.Lon,
+		};
+	};
+	selectPoint.isValidName = function(name){//#=>inValidMessage
+		var ret = null;
+		if(name.match(/^\s*$/)){ ret = TEXT_EMPTY; }
+		else{ shw.common.storageAccessor(function(json){
+			var dups = json.points.filter(function(point){
+				return point.name == name ? true : false;
+			});
+			ret = dups.length <= 0 ? null : TEXT_DUPLCATE;
+		}); }
+		return ret;
+	};
+	selectPoint.addPointList = function(name, point){
+		shw.common.storageAccessor(function(json){
+			json.points.push({
+				coords: point, name: name, addat: new Date()
+			});
+		});	
+	};
+
+	//init
+	shw.common.setShowAction("select_point", function(){
+		shw.common.getLocation(function(coords){
+			selectPoint.setMap(coords, DEFAULT_SCALE);
+		});
+		setTimeout(function(){
+			$(window).trigger('resize');		
+		}, 500);
+	});
+	shw.common.setHideAction("select_point", function(){});
+	var leftButton = $("#SHW-SP-BTN-L button");
+	var rightButton = $("#SHW-SP-BTN-R button");
+	$(leftButton).html(TEXT_CANCEL);
+	$(rightButton).html(TEXT_OK);
+	$(leftButton).click(function(){
+		shw.common.popPage();
+	});
+	$(rightButton).click(function(){
+		var point = selectPoint.getMapPoint();
+		bootbox.prompt(TEXT_PROMPT, function(name) {
+			if (name === null){ return; }
+			name = name.replace(/(^\s+|\s+)/g);
+			var inValidMessage = selectPoint.isValidName(name);
+			if(!inValidMessage){
+				selectPoint.addPointList(name, point);
+				shw.common.popPage();
+			} else { bootbox.alert(inValidMessage); }
+		});
+	});
+
+	selectPoint.initMap();
+	shw.selectPoint = selectPoint;
+
+});
+
+
